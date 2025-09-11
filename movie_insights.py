@@ -124,6 +124,36 @@ def get_valid_year(df, year_col: str = "Released_Year") -> int | None:
         print(f"Invalid year. Please enter a number between {y_min} and {y_max}.")
 
 # ---------- Example usage in your script ----------
-# genre = get_valid_genre()
-# year = get_valid_year(df)
-# print("Validated inputs ->", {"genre": genre, "year": year})
+genre = get_valid_genre()
+year = get_valid_year(df)
+print("Validated inputs ->", {"genre": genre, "year": year})
+
+# ---------- Filter the dataframe ----------
+filtered = df.copy()
+
+# If user picked a genre, keep rows where that genre is in the list
+if genre:
+    filtered = filtered[filtered["Genre"].apply(lambda lst: genre in lst)]
+
+# If user picked a year, keep rows with that year
+if year:
+    filtered = filtered[filtered["Released_Year"] == year]
+
+# Handle case: no results
+if filtered.empty:
+    print("No movies found for that filter. Try again!")
+else:
+    # ---------- Summary stats ----------
+    avg_rating = filtered["IMDB_Rating"].mean()
+    print(f"\nFound {len(filtered)} films. Average rating: {avg_rating:.2f}\n")
+
+    # ---------- Top 5 films ----------
+    top5 = (
+        filtered.sort_values(["IMDB_Rating", "No_of_Votes"], ascending=[False, False])
+        .head(5)
+        .loc[:, ["Series_Title", "Released_Year", "IMDB_Rating", "No_of_Votes"]]
+    )
+
+    # ---------- Pretty print ----------
+    print("Top 5 films:")
+    print(top5.to_string(index=False))
